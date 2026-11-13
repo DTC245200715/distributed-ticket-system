@@ -1,0 +1,28 @@
+## Visual Studio / VS Code / Rider
+.vs/
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+
+## Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+publish/
+
+## Environment variables and secrets
+.env
+*.local.env
+
+## Docker
+.docker/
+
+## OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
