@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/AssignmentWorker/">
+    <Project Path="AssignmentWorker/DistributedTicketSystem.AssignmentWorker.csproj" />
+  </Folder>
+  <Folder Name="/Contracts/">
+    <Project Path="Contracts/DistributedTicketSystem.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/NotificationService/">
+    <Project Path="NotificationService/DistributedTicketSystem.NotificationService.csproj" />
+  </Folder>
+  <Folder Name="/SupportApi/">
+    <Project Path="SupportApi/DistributedTicketSystem.SupportApi.csproj" />
+  </Folder>
+</Solution>
