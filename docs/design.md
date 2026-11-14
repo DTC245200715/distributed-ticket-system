@@ -45,21 +45,21 @@ flowchart TB
         end
     end
 
-    ClientApp -->|1. Tải static file| Nginx
-    ClientApp -->|2. REST API: GET, POST, PATCH| SupportApi
-    ClientApp <-->|3. SignalR WebSockets (withCredentials)| NotificationSvc
+    ClientApp -->|"1. Tải static file"| Nginx
+    ClientApp -->|"2. REST API: GET, POST, PATCH"| SupportApi
+    ClientApp <-->|"3. SignalR WebSockets (withCredentials)"| NotificationSvc
 
-    SupportApi -->|Ghi dữ liệu ticket & history ban đầu| Postgres
-    SupportApi -->|Publish: ticket.created| RabbitMQ
+    SupportApi -->|"Ghi dữ liệu ticket & history ban đầu"| Postgres
+    SupportApi -->|"Publish: ticket.created"| RabbitMQ
 
-    RabbitMQ -->|Consume: ticket.created (Manual Ack)| Worker
-    Worker -->|Gán nhóm/nhân viên, đổi sang Assigned, ghi history| Postgres
-    Worker -->|Publish: ticket.status.changed| RabbitMQ
+    RabbitMQ -->|"Consume: ticket.created (Manual Ack)"| Worker
+    Worker -->|"Gán nhóm/nhân viên, đổi sang Assigned, ghi history"| Postgres
+    Worker -->|"Publish: ticket.status.changed"| RabbitMQ
 
-    SupportApi -->|Publish: ticket.status.changed khi user PATCH| RabbitMQ
+    SupportApi -->|"Publish: ticket.status.changed khi user PATCH"| RabbitMQ
 
-    RabbitMQ -->|Consume: ticket.status.changed| NotificationSvc
-    NotificationSvc -->|Push realtime theo group userId| ClientApp
+    RabbitMQ -->|"Consume: ticket.status.changed"| NotificationSvc
+    NotificationSvc -->|"Push realtime theo group userId"| ClientApp
 
     classDef client fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
     classDef service fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
