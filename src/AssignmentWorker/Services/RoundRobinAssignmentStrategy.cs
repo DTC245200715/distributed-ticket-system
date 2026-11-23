@@ -93,8 +93,8 @@ public class RoundRobinAssignmentStrategy : IAssignmentStrategy
         // Sử dụng phép tăng nguyên tử Interlocked.Increment để xử lý Tie-Break khi nhiều luồng cùng gọi tới
         var counter = Interlocked.Increment(ref counterBox.Value);
 
-        // Phép chia lấy dư với số nguyên không âm để xoay vòng tuần tự, công bằng
-        var index = (int)((uint)counter % (uint)availableAgents.Count);
+        // Phép chia lấy dư với số nguyên không âm để xoay vòng tuần tự, công bằng (bắt đầu từ index 0)
+        var index = (int)(((uint)counter - 1) % (uint)availableAgents.Count);
 
         return availableAgents[index];
     }
