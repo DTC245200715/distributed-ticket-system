@@ -24,11 +24,11 @@ builder.Services.AddDbContext<WorkerDbContext>(options =>
     });
 });
 
-// 3. Đăng ký Chiến lược phân công Priority + Round-Robin (Singleton để duy trì bộ đếm xoay vòng trong RAM)
+// 3. Đăng ký Chiến lược phân công Priority + Round-Robin (Singleton để giữ state trong RAM)
 builder.Services.AddSingleton<IAssignmentStrategy, RoundRobinAssignmentStrategy>();
 
-// 4. Đăng ký Ticket Processing Service (Stub tạm thời, sẽ hoàn thiện ở Bước 5)
-builder.Services.AddScoped<ITicketProcessingService, StubTicketProcessingService>();
+// 4. Đăng ký Ticket Processing Service xử lý nghiệp vụ với PostgreSQL
+builder.Services.AddScoped<ITicketProcessingService, TicketProcessingService>();
 
 // 5. Đăng ký RabbitMQ Consumer Background Service
 builder.Services.AddHostedService<RabbitMqConsumerService>();
