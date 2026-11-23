@@ -111,7 +111,34 @@ public class RabbitMqConsumerService : BackgroundService
             @global: false,
             cancellationToken: ct);
 
-        // 2. Khai báo Dead-Letter Topology để chứa message độc (Poison Messages)
+        // 2. Khai báo Topology Exchange và Queue tiếp nhận nếu chưa tồn tại
+        var exchangeName = _configuration["RabbitMQ:ExchangeName"] ?? RabbitMqConstants.ExchangeName;
+        var creationQueue = _configuration["RabbitMQ:CreationQueue"] ?? RabbitMqConstants.CreationQueue;
+
+        await _channel.ExchangeDeclareAsync(
+            exchange: exchangeName,
+            type: ExchangeType.Topic,
+            durable: true,
+            autoDelete: false,
+            arguments: null,
+            cancellationToken: ct);
+
+        await _channel.QueueDeclareAsync(
+            queue: creationQueue,
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null,
+            cancellationToken: ct);
+
+        await _channel.QueueBindAsync(
+            queue: creationQueue,
+            exchange: exchangeName,
+            routingKey: RabbitMqConstants.RoutingKeyCreated,
+            arguments: null,
+            cancellationToken: ct);
+
+        // 3. Khai báo Dead-Letter Topology để chứa message độc (Poison Messages)
         await _channel.ExchangeDeclareAsync(
             exchange: DeadLetterExchange,
             type: ExchangeType.Direct,
