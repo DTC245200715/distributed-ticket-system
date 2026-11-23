@@ -1,5 +1,6 @@
 using DistributedTicketSystem.AssignmentWorker.Data;
 using DistributedTicketSystem.AssignmentWorker.Messaging;
+using DistributedTicketSystem.AssignmentWorker.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -23,10 +24,13 @@ builder.Services.AddDbContext<WorkerDbContext>(options =>
     });
 });
 
-// 3. Đăng ký Ticket Processing Service (tạm thời dùng Stub, sẽ thay thế ở Bước 4 & 5)
+// 3. Đăng ký Chiến lược phân công Priority + Round-Robin (Singleton để duy trì bộ đếm xoay vòng trong RAM)
+builder.Services.AddSingleton<IAssignmentStrategy, RoundRobinAssignmentStrategy>();
+
+// 4. Đăng ký Ticket Processing Service (Stub tạm thời, sẽ hoàn thiện ở Bước 5)
 builder.Services.AddScoped<ITicketProcessingService, StubTicketProcessingService>();
 
-// 4. Đăng ký RabbitMQ Consumer Background Service
+// 5. Đăng ký RabbitMQ Consumer Background Service
 builder.Services.AddHostedService<RabbitMqConsumerService>();
 
 var host = builder.Build();
