@@ -1,3 +1,5 @@
+using DistributedTicketSystem.NotificationService.Hubs;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Cấu hình Logging ra Console
@@ -25,6 +27,9 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors();
+
+// Map SignalR Hub tại đường dẫn /hubs/notifications
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 // Endpoint kiểm tra sức khỏe dịch vụ
 app.MapGet("/health", () => Results.Ok(new
