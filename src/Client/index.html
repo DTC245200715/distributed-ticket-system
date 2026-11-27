@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Hỗ Trợ Yêu Cầu Khách Hàng</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <!-- SignalR JS Client chính thức từ CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-brand">
+            <h1>Hệ Thống Hỗ Trợ Ticket</h1>
+            <p class="subtitle">Event-Driven Microservices (.NET 10 • RabbitMQ • SignalR • PostgreSQL)</p>
+        </div>
+
+        <div class="header-controls">
+            <div class="user-switcher">
+                <label for="active-user-input">User đang theo dõi:</label>
+                <input type="text" id="active-user-input" value="customer_01" placeholder="Ví dụ: customer_01">
+                <button type="button" id="apply-user-btn" class="btn btn-secondary">Kết nối</button>
+            </div>
+            <div id="signalr-status" class="status-pill status-disconnected" aria-live="polite">
+                <span class="dot"></span>
+                <span class="status-text">SignalR: Đang kết nối...</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Cột trái: Form tạo yêu cầu hỗ trợ mới -->
+        <section class="card form-section" aria-labelledby="create-ticket-heading">
+            <h2 id="create-ticket-heading">Tạo Yêu Cầu Hỗ Trợ Mới</h2>
+            <form id="create-ticket-form" novalidate>
+                <div class="form-group">
+                    <label for="ticket-user-id">Mã khách hàng (User ID) <span class="required">*</span></label>
+                    <input type="text" id="ticket-user-id" name="userId" value="customer_01" required maxlength="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="ticket-priority">Mức độ ưu tiên (Priority) <span class="required">*</span></label>
+                    <select id="ticket-priority" name="priority" required>
+                        <option value="Low">Low (Thấp - Nhóm L1)</option>
+                        <option value="Medium" selected>Medium (Trung bình - Nhóm L1)</option>
+                        <option value="High">High (Cao - Nhóm L2)</option>
+                        <option value="Urgent">Urgent (Khẩn cấp - Nhóm L3)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ticket-title">Tiêu đề yêu cầu <span class="required">*</span></label>
+                    <input type="text" id="ticket-title" name="title" placeholder="Ví dụ: Lỗi thanh toán cổng VNPAY" required maxlength="250">
+                </div>
+
+                <div class="form-group">
+                    <label for="ticket-description">Mô tả chi tiết <span class="required">*</span></label>
+                    <textarea id="ticket-description" name="description" rows="4" placeholder="Mô tả chi tiết lỗi hoặc vấn đề cần hỗ trợ..." required></textarea>
+                </div>
+
+                <div id="form-feedback" class="form-feedback" aria-live="polite"></div>
+
+                <button type="submit" id="submit-ticket-btn" class="btn btn-primary btn-full">
+                    Gửi Yêu Cầu Hỗ Trợ
+                </button>
+            </form>
+        </section>
+
+        <!-- Cột phải: Danh sách và bộ lọc Ticket -->
+        <section class="card list-section" aria-labelledby="ticket-table-caption">
+            <div class="list-header">
+                <h2 id="ticket-table-caption">Danh Sách Yêu Cầu Hỗ Trợ</h2>
+                <div class="list-filters">
+                    <select id="filter-scope" aria-label="Phạm vi hiển thị">
+                        <option value="all">Tất cả Ticket</option>
+                        <option value="mine">Chỉ của User hiện tại</option>
+                    </select>
+                    <select id="filter-status" aria-label="Lọc theo trạng thái">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="New">New</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="InProgress">InProgress</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                    <select id="filter-priority" aria-label="Lọc theo mức ưu tiên">
+                        <option value="">Tất cả ưu tiên</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Urgent">Urgent</option>
+                    </select>
+                    <button type="button" id="refresh-btn" class="btn btn-secondary">Làm mới</button>
+                </div>
+            </div>
+
+            <div tabindex="0" role="region" aria-labelledby="ticket-table-caption" class="table-wrapper">
+                <table id="tickets-table">
+                    <thead>
+                        <tr>
+                            <th>Tiêu đề / ID</th>
+                            <th>Khách hàng</th>
+                            <th>Ưu tiên</th>
+                            <th>Trạng thái</th>
+                            <th>Nhân viên / Nhóm</th>
+                            <th>Cập nhật</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickets-tbody">
+                        <tr>
+                            <td colspan="7" class="empty-cell">Đang tải dữ liệu...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Native Modal Dialog xem chi tiết & cập nhật trạng thái -->
+    <dialog id="ticket-detail-dialog" aria-labelledby="detail-dialog-title" closedby="any">
+        <div class="dialog-header">
+            <h1 id="detail-dialog-title">Chi Tiết Yêu Cầu Hỗ Trợ</h1>
+            <button type="button" id="close-dialog-btn" class="btn-icon" aria-label="Đóng hộp thoại">✕</button>
+        </div>
+
+        <div id="dialog-body" class="dialog-body">
+            <!-- Nội dung chi tiết và lịch sử sẽ được render bằng JS -->
+        </div>
+    </dialog>
+
+    <!-- Vùng thông báo Toast Realtime -->
+    <div id="toast-container" class="toast-container" role="region" aria-label="Thông báo thời gian thực"></div>
+    <div id="sr-live-region" class="visually-hidden" aria-live="polite"></div>
+</body>
+</html>
