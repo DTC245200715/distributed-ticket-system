@@ -1,4 +1,6 @@
 using DistributedTicketSystem.NotificationService.Hubs;
+using DistributedTicketSystem.NotificationService.Messaging;
+using DistributedTicketSystem.NotificationService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,10 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+
+// 4. Đăng ký Dispatcher đẩy thông báo qua SignalR và Background Consumer lắng nghe RabbitMQ
+builder.Services.AddSingleton<INotificationDispatcher, SignalRNotificationDispatcher>();
+builder.Services.AddHostedService<RabbitMqNotificationConsumer>();
 
 var app = builder.Build();
 
